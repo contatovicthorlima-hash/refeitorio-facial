@@ -9,7 +9,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    # Tabela de pessoas (sem foto_path por enquanto)
+    # Criar tabela pessoas
     cur.execute("""
     CREATE TABLE IF NOT EXISTS pessoas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,25 +18,31 @@ def init_db():
     )
     """)
 
-    # Garante que a coluna foto_path exista (migração simples)
+    # Garantir coluna foto_path
     cur.execute("PRAGMA table_info(pessoas)")
     cols = [row[1] for row in cur.fetchall()]
     if "foto_path" not in cols:
         cur.execute("ALTER TABLE pessoas ADD COLUMN foto_path TEXT")
 
-    # Tabela de refeições
+    # Criar tabela refeicoes (sem tipo obrigatório para evitar conflito)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS refeicoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         pessoa_id INTEGER NOT NULL,
         data TEXT NOT NULL,
         hora TEXT NOT NULL,
-        tipo TEXT NOT NULL,
+        tipo TEXT,
         FOREIGN KEY (pessoa_id) REFERENCES pessoas(id)
     )
     """)
 
-    # Tabela de usuários do sistema (login)
+    # Garantir coluna tipo (pq no Render não existe)
+    cur.execute("PRAGMA table_info(refeicoes)")
+    cols = [row[1] for row in cur.fetchall()]
+    if "tipo" not in cols:
+        cur.execute("ALTER TABLE refeicoes ADD COLUMN tipo TEXT")
+
+    # Criar tabela usuarios_sistema
     cur.execute("""
     CREATE TABLE IF NOT EXISTS usuarios_sistema (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +54,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
 
 # ---------------- PESSOAS ----------------
 
