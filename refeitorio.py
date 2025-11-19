@@ -9,15 +9,20 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    # Tabela de pessoas (agora com foto_path)
+    # Tabela de pessoas (sem foto_path por enquanto)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS pessoas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
-        matricula TEXT,
-        foto_path TEXT
+        matricula TEXT
     )
     """)
+
+    # Garante que a coluna foto_path exista (migração simples)
+    cur.execute("PRAGMA table_info(pessoas)")
+    cols = [row[1] for row in cur.fetchall()]
+    if "foto_path" not in cols:
+        cur.execute("ALTER TABLE pessoas ADD COLUMN foto_path TEXT")
 
     # Tabela de refeições
     cur.execute("""
